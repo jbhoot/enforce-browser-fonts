@@ -13,6 +13,8 @@ const syncIcon = async () => {
     const curr = await docFontsInUse()
     const icon = curr ? 'icons/off.svg' : 'icons/on.svg'
     await browserAction.setIcon({path: icon})
+    const title = curr ? 'Using webpage fonts' : 'Using browser fonts'
+    await browserAction.setTitle({title: title})
 }
 
 const toggle = async () => {
