@@ -20,6 +20,9 @@ const toggle = async () => {
     await useDocumentFonts.set({value: !curr})
 }
 
+runtime.onInstalled.addListener(async () => {
+    await syncIcon()
+})
 runtime.onStartup.addListener(async () => {
     await syncIcon()
 })
