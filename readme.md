@@ -1,11 +1,22 @@
+# What is this?
+
+I prefer to use my own fonts instead of fonts set by websites. While firefox provides this configuration, it does not let you easily toggle between browser and website fonts, which is a hassle, because quite a lot of time, I need to use the website fonts (eg: fonts.google.com).
+
+This Firefox WebExtension lets you toggle between browser and website fonts by:
+
+1. clicking on the toolbar icon
+2. pressing keyboard combo: Alt-Comma
+
+The toolbar icon also acts as a visual cue: If it is coloured, then browser fonts are enforced. Otherwise, website fonts are being used. The icon tooltip provides the textual cue for the same.
+
 # Demo
 
 ![](demo.gif)
 
 # Roadmap
 
-- [] Customizable keyboard shortcut
-- [] Configuration per website. As such, Firefox's setting is browser-wide. But I see a possibility of piping through the various extension APIs to make per-website configuration possible.
+- [ ] Customizable keyboard shortcut
+- [ ] Configuration per website. As such, Firefox's setting is browser-wide. But I see a possibility of piping through the various extension APIs to make per-website configuration possible.
 
 # Current Limitations
 
