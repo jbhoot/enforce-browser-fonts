@@ -14,8 +14,8 @@
         "scripts": ["background-script.js"]
     },
     "icons": {
-        "48": "icons/off.svg",
-        "96": "icons/off.svg"
+        "48": "icons/on.svg",
+        "96": "icons/on.svg"
     },
     "commands": {
         "_execute_browser_action": {
