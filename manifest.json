@@ -1,9 +1,9 @@
 {
     "manifest_version": 2,
-    "name": "Toggle Browser Fonts",
+    "name": "Enforce Browser Fonts",
     "version": "0.1",
-    "description": "A simpler way to toggle between browser fonts and webpage fonts",
-    "homepage_url": "https://github.com/jayesh-bhoot/toggle-browser-fonts",
+    "description": "Enforce browser fonts easily on webpages instead of letting them use their own fonts",
+    "homepage_url": "https://github.com/jayesh-bhoot/enforce-browser-fonts",
     "browser_action": {
         "default_icon": {
             "48": "icons/off.svg",
@@ -19,7 +19,7 @@
     },
     "commands": {
         "_execute_browser_action": {
-            "description": "Shortcut to toggle the browser fonts",
+            "description": "Shortcut to toggle the enforcement of browser fonts",
             "suggested_key": {
                 "default": "Alt+Comma"
             }
