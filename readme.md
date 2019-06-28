@@ -11,7 +11,7 @@ The toolbar icon also acts as a visual cue: If it is coloured, then browser font
 
 # Demo
 
-![](demo.gif)
+![](./demos/demo.gif)
 
 # Roadmap
 
