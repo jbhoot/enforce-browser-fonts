@@ -1,23 +1,25 @@
-const browserFonts = Symbol('browser-fonts')
-const documentFonts = Symbol('document-fonts')
-
 const {
     browserSettings: { useDocumentFonts },
     browserAction,
     runtime
 } = browser
 
-const whichFontsInUse = () => {
+const FontSource = {
+    browser: 'browser-fonts',
+    document: 'document-fonts'
+}
+
+const whoseFontsInUse = () => {
     return useDocumentFonts
         .get({})
-        .then(res => res.value ? documentFonts : browserFonts)
+        .then(res => res.value ? FontSource.document : FontSource.browser)
 }
 
 const syncIcon = () => {
     const whichToolbarIconToUse = fontsInUse => {
-        return fontsInUse === documentFonts
-            ? { icon: 'icons/off.svg', title: 'Using webpage fonts' }
-            : { icon: 'icons/on.svg', title: 'Using browser fonts' }
+        return fontsInUse === FontSource.browser
+            ? { icon: 'icons/on.svg', title: 'Using browser fonts' }
+            : { icon: 'icons/off.svg', title: 'Using webpage fonts' }
     }
 
     const syncToolbarIcon = ({ icon, title }) => {
@@ -27,7 +29,7 @@ const syncIcon = () => {
         ])
     }
 
-    return whichFontsInUse()
+    return whoseFontsInUse()
         .then(whichToolbarIconToUse)
         .then(syncToolbarIcon)
 }
@@ -35,10 +37,10 @@ const syncIcon = () => {
 const toggleFonts = () => {
     const setFonts = fontsInUse => {
         return useDocumentFonts
-            .set({ value: fontsInUse === browserFonts })
+            .set({ value: fontsInUse === FontSource.browser})
     }
 
-    return whichFontsInUse()
+    return whoseFontsInUse()
         .then(setFonts)
 }
 
