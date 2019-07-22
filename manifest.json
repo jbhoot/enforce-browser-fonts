@@ -11,7 +11,7 @@
         }
     },
     "background": {
-        "scripts": ["background-script-promise.js"]
+        "scripts": ["background-script.js"]
     },
     "icons": {
         "48": "icons/on.svg",
