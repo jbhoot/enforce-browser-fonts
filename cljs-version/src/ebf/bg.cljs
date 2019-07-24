@@ -35,24 +35,25 @@
 ; Third pass
 ; new functionality: sync with current state when the addon is installed as well as at every browser startup.
 ; more composable, but probably harder to grok at one read?
-(defn make-state [doc-fonts?]
+(defn new-state [doc-fonts?]
   (if doc-fonts?
     {:doc-fonts? true :icon "icons/off.svg" :tooltip "Using Webpage Fonts"}
     {:doc-fonts? false :icon "icons/on.svg" :tooltip "Using Browser Fonts"}))
 
-(defn set-state! [conf]
-  (.all js/Promise [(.set (.-useDocumentFonts (.-browserSettings js/browser)) #js {:value (:doc-fonts? conf)})
-                    (.setIcon (.-browserAction js/browser) #js {:path (:icon conf)})
-                    (.setTitle (.-browserAction js/browser) #js {:title (:tooltip conf)})]))
+(defn set-state! [state]
+  (.all js/Promise [(.set (.-useDocumentFonts (.-browserSettings js/browser)) #js {:value (:doc-fonts? state)})
+                    (.setIcon (.-browserAction js/browser) #js {:path (:icon state)})
+                    (.setTitle (.-browserAction js/browser) #js {:title (:tooltip state)})]))
 
 (defn using-doc-fonts? []
   (-> (.-useDocumentFonts (.-browserSettings js/browser))
     (.get #js {})
     (.then #(.-value %))))
 
-(defn sync-state [invert?]
+(defn sync-state [invert-curr-state?]
   (-> (using-doc-fonts?)
-    (.then #(make-state (invert? %)))
+    (.then #(invert-curr-state? %))
+    (.then #(new-state %))
     (.then #(set-state! %))))
 
 (.addListener (.-onClicked (.-browserAction js/browser)) #(sync-state not))
