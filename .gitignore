@@ -1,2 +1,4 @@
 .idea
 .shadow-cljs/
+node_modules/
+src-pkg.zip
