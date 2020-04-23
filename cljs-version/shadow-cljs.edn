@@ -1,6 +1,0 @@
-;; shadow-cljs configuration
-{:source-paths ["src"]
- :dependencies []
- :builds {:app {:target :browser
-                :output-dir "build"
-                :modules {:bg-script {:entries [ebf.bg]}}}}}

@@ -1,0 +1,3 @@
+{:optimizations :whitespace
+ :output-dir    "tmp"
+ :output-to     "js/main.js"}
