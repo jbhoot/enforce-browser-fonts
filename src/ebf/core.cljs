@@ -24,6 +24,8 @@
       (.then #(new-state %))
       (.then #(set-state! %))))
 
+
+(.addListener (.-onUpdated (.-tabs js/browser)) (fn [tab-id change-info tab-info] (println (str "id: " (.-url change-info)))))
 (.addListener (.-onClicked (.-browserAction js/browser)) #(sync-state not))
 (.addListener (.-onInstalled (.-runtime js/browser)) #(sync-state identity))
 (.addListener (.-onStartup (.-runtime js/browser)) #(sync-state identity))
