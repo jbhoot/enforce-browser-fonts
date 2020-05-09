@@ -1,0 +1,1 @@
+clj --main cljs.main --compile-opts compile-opts.edn --watch src --compile ebf.core
