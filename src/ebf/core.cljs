@@ -1,66 +1,94 @@
-(ns ebf.core)
+(ns ebf.core
+  (:require [clojure.string :as str :refer [split]]))
 
-; Third pass
-; new functionality: sync with current state when the addon is installed as well as at every browser startup.
-; more composable, but probably harder to grok at one read?
-(defn new-state [doc-fonts?]
-  (if doc-fonts?
-    {:doc-fonts? true :icon "icons/off.svg" :tooltip "Using Webpage Fonts"}
-    {:doc-fonts? false :icon "icons/on.svg" :tooltip "Using Browser Fonts"}))
+(def addon-storage (.-local (.-storage js/browser)))
 
-(defn set-state! [state]
-  (.all js/Promise [(.set (.-useDocumentFonts (.-browserSettings js/browser)) #js {:value (:doc-fonts? state)})
-                    (.setIcon (.-browserAction js/browser) #js {:path (:icon state)})
-                    (.setTitle (.-browserAction js/browser) #js {:title (:tooltip state)})]))
+(def config {:browser-fonts  {:enable  {:pref  {:value false}
+                                        :icon  {:path "icons/on.svg"}
+                                        :title {:title "Using Browser Fonts"}}
+                              :disable {:pref  {:value true}
+                                        :icon  {:path "icons/off.svg"}
+                                        :title {:title "Using Website Fonts"}}}
+             :document-fonts {:enable  {:pref  {:value true}
+                                        :icon  {:path "icons/off.svg"}
+                                        :title {:title "Using Website Fonts"}}
+                              :disable {:pref  {:value false}
+                                        :icon  {:path "icons/on.svg"}
+                                        :title {:title "Using Browser Fonts"}}}})
 
-(defn using-doc-fonts? []
-  (-> (.-useDocumentFonts (.-browserSettings js/browser))
-      (.get #js {})
-      (.then #(.-value %))))
+(def state (atom {:default-fonts   :browser-fonts
+                  :browser-fonts   {:exclude '()}
+                  :document-fonts  {:exclude '()}
+                  :current-tab-url nil}))
 
-(defn sync-state [invert-curr-state?]
-  (-> (using-doc-fonts?)
-      (.then #(invert-curr-state? %))
-      (.then #(new-state %))
-      (.then #(set-state! %))))
+(defn set-browser-pref! [{pref :pref}]
+  (.set (.-useDocumentFonts (.-browserSettings js/browser)) (clj->js pref)))
 
+(defn set-addon-icon! [{icon :icon}]
+  (.setIcon (.-browserAction js/browser) (clj->js icon)))
 
-(.addListener (.-onUpdated (.-tabs js/browser)) (fn [tab-id change-info tab-info] (println (str "id: " (.-url change-info)))))
-(.addListener (.-onClicked (.-browserAction js/browser)) #(sync-state not))
-(.addListener (.-onInstalled (.-runtime js/browser)) #(sync-state identity))
-(.addListener (.-onStartup (.-runtime js/browser)) #(sync-state identity))
+(defn set-addon-title! [{title :title}]
+  (.setTitle (.-browserAction js/browser) (clj->js title)))
 
-
-; Second pass
-; improved readability through thread-first macro
-; also improved logic
-; (.addListener (.-onClicked (.-browserAction js/browser))
-;   (fn [_]
-;     (->
-;       (.get (.-useDocumentFonts (.-browserSettings js/browser)) #js {})
-;       (.then #(.-value %))
-;       (.then (fn [doc-fonts?]
-;                 (if doc-fonts?
-;                   {:doc-fonts? false :icon "icons/on.svg" :tooltip "Browser Fonts"}
-;                   {:doc-fonts? true :icon "icons/off.svg" :tooltip "Document Fonts"})))
-;       (.then #(.all js/Promise [(.set (.-useDocumentFonts (.-browserSettings js/browser)) #js {:value (:doc-fonts? %)})
-;                                 (.setIcon (.-browserAction js/browser) #js {:path (:icon %)})
-;                                 (.setTitle (.-browserAction js/browser) #js {:title (:tooltip %)})])))))
+(defn configure-addon-for-current-site! [config]
+  (.all js/Promise [(set-browser-pref! config)
+                    (set-addon-icon! config)
+                    (set-addon-title! config)]))
 
 
-; First pass: one big ball of expressions.
-; Poor readability but its exhilarating to see the
-; 'everything is an expression and returns value' in action
-; as well as to see the whole program as a one big expression.
-; (.addListener (.-onClicked (.-browserAction js/browser))
-;   (fn [_]
-;     (.then
-;       (.then
-;         (.then
-;           (.get (.-useDocumentFonts (.-browserSettings js/browser)) #js {})
-;           #(.-value %))
-;         (fn [doc-fonts?] {:new-fonts (not doc-fonts?) :new-icon (if doc-fonts? "icons/on.svg" "icons/off.svg") :new-tooltip (if doc-fonts? "Browser Fonts" "Document Fonts")}))
-;       #(.all js/Promise [(.set (.-useDocumentFonts (.-browserSettings js/browser)) #js {:value (:new-fonts %)})
-;                                 (.setIcon (.-browserAction js/browser) #js {:path (:new-icon %)})
-;                                 (.setTitle (.-browserAction js/browser) #js {:title (:new-tooltip %)})]))))
+(defn load-from-storage! []
+  (println "loading")
+  (-> (.get addon-storage)
+      (.then #(js->clj % :keywordize-keys true))
+      (.then #(swap! state merge %))))
 
+(defn write-to-storage! [key atom old-state new-state]
+  (println "storing")
+  (->> (select-keys new-state [:default-fonts :browser-fonts :document-fonts])
+       (clj->js)
+       (.set addon-storage)))
+
+(defn configure-addon-for-current-site [key atom old-state new-state]
+  (if (nil? (:current-tab-url new-state))
+    ()
+    (if (some #{(:current-tab-url new-state)} (:exclude ((:default-fonts new-state) new-state)))
+      (configure-addon-for-current-site! (:disable ((:default-fonts new-state) config)))
+      (configure-addon-for-current-site! (:enable ((:default-fonts new-state) config))))))
+
+(defn log [key atom old-state new-state]
+  (println "old: " old-state)
+  (println "new: " new-state))
+
+(add-watch state :log log)
+(add-watch state :write-to-storage! write-to-storage!)
+(add-watch state :configure-addon-for-current-site configure-addon-for-current-site)
+
+(defn domain-name [url] (get (str/split url #"/") 2))
+
+(defn tab-activated [active-info]
+  (-> (.get (.-tabs js/browser) (.-tabId active-info))
+      (.then #(swap! state assoc :current-tab-url (domain-name (.-url %))))))
+
+(defn tab-changed [tab-id change-info tab-info]
+  (if (nil? (.-url change-info))
+    ()
+    (swap! state assoc :current-tab-url (domain-name (.-url change-info)))))
+
+(defn browser-action-activated []
+  (if (some #{(:current-tab-url @state)} (:exclude ((:default-fonts @state) @state)))
+    (swap! state
+           update-in
+           [(:default-fonts @state) :exclude]
+           (partial remove #{(:current-tab-url @state)}))
+    (swap! state
+           update-in
+           [(:default-fonts @state) :exclude]
+           conj
+           (:current-tab-url @state))))
+
+(.addListener (.-onActivated (.-tabs js/browser)) tab-activated)
+(.addListener (.-onUpdated (.-tabs js/browser)) tab-changed)
+(.addListener (.-onClicked (.-browserAction js/browser)) browser-action-activated)
+
+(.addListener (.-onInstalled (.-runtime js/browser)) load-from-storage!)
+(.addListener (.-onStartup (.-runtime js/browser)) load-from-storage!)
