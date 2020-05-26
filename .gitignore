@@ -3,3 +3,5 @@
 *.iml
 tmp/
 src-pkg.zip
+*.map
+build/js/

@@ -100,9 +100,19 @@
       (.then #(swap! app-state assoc :current-tab-url %)))
   )
 
+(defn handle-options [request sender send-response]
+  (-> (js->clj request :keywordize-keys true)
+      (#(if (empty? %)
+          (send-response (clj->js @app-state))
+          (swap! app-state assoc :default-fonts (keyword (:default-fonts %)))))))
+
 (.addListener (.-onActivated (.-tabs js/browser)) tab-activated)
 (.addListener (.-onUpdated (.-tabs js/browser)) tab-changed)
 (.addListener (.-onClicked (.-browserAction js/browser)) browser-action-activated)
 
-(.addListener (.-onInstalled (.-runtime js/browser)) init)
-(.addListener (.-onStartup (.-runtime js/browser)) init)
+;(.addListener (.-onInstalled (.-runtime js/browser)) init)
+;(.addListener (.-onStartup (.-runtime js/browser)) init)
+(.addEventListener js/document "DOMContentLoaded" init)
+
+(.addListener (.-onMessage (.-runtime js/browser)) handle-options)
+

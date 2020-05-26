@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <style>
+        html {
+            font-size: 10px;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            font-size: 1.5rem;
+            padding: 10px;
+        }
+
+        .input {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .input > *:not(:last-child) {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+<form class="form">
+    <label class="input">
+        <input type="radio" name="default-fonts" id="browser-fonts">
+        <span>Enforce the browser fonts for all sites by default. Use this option if you want to enforce the browser fonts for most websites, and only want to tell the add-on to disable browser fonts for a select few websites.</span>
+    </label>
+    <label class="input">
+        <input type="radio" name="default-fonts" id="document-fonts">
+        <span>Disable the browser fonts for all sites by default. Use this option if you want to disable the browser fonts for most websites, and only want to tell the add-on to enforce browser fonts for a select few websites.</span>
+    </label>
+</form>
+<script src="js/options.js"></script>
+</body>
+</html>
