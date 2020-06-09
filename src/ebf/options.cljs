@@ -17,7 +17,6 @@
       (.sendMessage (clj->js new-state))))
 
 (defn init-prefs []
-  (println "opt dom")
   (-> js/browser
       (.-runtime)
       (.sendMessage (clj->js {}))

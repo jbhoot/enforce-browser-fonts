@@ -82,7 +82,11 @@
            update-in
            [(:default-fonts @app-state) :exclude]
            conj
-           (:current-tab-url @app-state))))
+           (:current-tab-url @app-state)))
+  (swap! app-state
+         update-in
+         [(if (= (:default-fonts @app-state) :browser-fonts) :document-fonts :browser-fonts) :exclude]
+         (partial remove #{(:current-tab-url @app-state)})))
 
 (defn watch-over-app-state []
   (add-watch app-state :log log)
