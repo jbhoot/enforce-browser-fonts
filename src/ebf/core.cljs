@@ -17,8 +17,8 @@
                                           :title {:title "Using Browser Fonts"}}}})
 
 (def app-state (atom {:default-fonts   :browser-fonts
-                      :browser-fonts   {:exclude '()}
-                      :document-fonts  {:exclude '()}
+                      :browser-fonts   {:exclude #{}}
+                      :document-fonts  {:exclude #{}}
                       :current-tab-url nil}))
 
 (defn set-browser-pref! [{pref :pref}]
@@ -39,6 +39,8 @@
   (-> (.get addon-storage)
       (.then #(js->clj % :keywordize-keys true))
       (.then #(assoc % :default-fonts (keyword (:default-fonts % (clj->js (:default-fonts @app-state))))))
+      (.then #(update-in % [:browser-fonts :exclude] set (:exclude (:browser-fonts %))))
+      (.then #(update-in % [:document-fonts :exclude] set (:exclude (:document-fonts %))))
       (.then #(swap! app-state merge %))))
 
 (defn write-to-storage! [key atom old-state new-state]
@@ -53,7 +55,8 @@
         ui (font-type ui-state)]
     (if (nil? current-domain)
       ()
-      (if (some #{current-domain} excluded-domains)
+      ;(if (some #{current-domain} excluded-domains)
+      (if (contains? excluded-domains current-domain)
         (configure-addon-for-current-site! (:disable ui))
         (configure-addon-for-current-site! (:enable ui))))))
 
@@ -73,20 +76,13 @@
     (swap! app-state assoc :current-tab-url (domain-name (.-url change-info)))))
 
 (defn browser-action-activated []
-  (if (some #{(:current-tab-url @app-state)} (:exclude ((:default-fonts @app-state) @app-state)))
+  (if (contains? (:exclude ((:default-fonts @app-state) @app-state)) (:current-tab-url @app-state))
     (swap! app-state
-           update-in
-           [(:default-fonts @app-state) :exclude]
-           (partial remove #{(:current-tab-url @app-state)}))
+           update-in [(:default-fonts @app-state) :exclude] disj (:current-tab-url @app-state))
     (swap! app-state
-           update-in
-           [(:default-fonts @app-state) :exclude]
-           conj
-           (:current-tab-url @app-state)))
+           update-in [(:default-fonts @app-state) :exclude] conj (:current-tab-url @app-state)))
   (swap! app-state
-         update-in
-         [(if (= (:default-fonts @app-state) :browser-fonts) :document-fonts :browser-fonts) :exclude]
-         (partial remove #{(:current-tab-url @app-state)})))
+         update-in [(if (= (:default-fonts @app-state) :browser-fonts) :document-fonts :browser-fonts) :exclude] disj (:current-tab-url @app-state)))
 
 (defn watch-over-app-state []
   (add-watch app-state :log log)
