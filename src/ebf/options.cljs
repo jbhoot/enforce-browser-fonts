@@ -24,7 +24,7 @@
       (.then #(keyword (:default-fonts %)))
       (.then #(swap! pref-state assoc :default-fonts %)))
   (add-watch pref-state :update-ui update-ui)
-  (add-watch pref-state :log log)
+  ;(add-watch pref-state :log log)
   (add-watch pref-state :transmit transmit)
   (.addEventListener (.getElementById js/document "browser-fonts") "change" #(swap! pref-state assoc :default-fonts :browser-fonts))
   (.addEventListener (.getElementById js/document "document-fonts") "change" #(swap! pref-state assoc :default-fonts :document-fonts)))

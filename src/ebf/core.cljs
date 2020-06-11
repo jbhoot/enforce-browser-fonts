@@ -85,7 +85,7 @@
          update-in [(if (= (:default-fonts @app-state) :browser-fonts) :document-fonts :browser-fonts) :exclude] disj (:current-tab-url @app-state)))
 
 (defn watch-over-app-state []
-  (add-watch app-state :log log)
+  ;(add-watch app-state :log log)
   (add-watch app-state :write-to-storage! write-to-storage!)
   (add-watch app-state :configure-addon-for-current-site configure-addon-for-current-site))
 
