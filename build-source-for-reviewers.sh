@@ -1,0 +1,1 @@
+zip -r src-pkg.zip build/icons build/manifest.json build/preferences.html cljs-compile-options src deps.edn README-for-reviewers.md

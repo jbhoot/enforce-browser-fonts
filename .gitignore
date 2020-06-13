@@ -5,3 +5,4 @@ tmp/
 src-pkg.zip
 *.map
 build/js/
+build/web-ext-artifacts
