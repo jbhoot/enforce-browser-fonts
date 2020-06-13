@@ -1,8 +1,6 @@
 (ns ebf.core
   (:require [clojure.string :as str :refer [split]]))
 
-(def addon-storage (.-local (.-storage js/browser)))
-
 (def ui-state {:browser-fonts  {:enable  {:pref  {:value false}
                                           :icon  {:path "icons/on.svg"}
                                           :title {:title "Using Browser Fonts"}}
@@ -36,7 +34,7 @@
                     (set-addon-title! config)]))
 
 (defn load-state-from-storage! []
-  (-> (.get addon-storage)
+  (-> (.get (.-local (.-storage js/browser)))
       (.then #(js->clj % :keywordize-keys true))
       (.then #(assoc % :default-fonts (keyword (:default-fonts % (clj->js (:default-fonts @app-state))))))
       (.then #(update-in % [:browser-fonts :exclude] set (:exclude (:browser-fonts %))))
@@ -46,16 +44,14 @@
 (defn write-to-storage! [key atom old-state new-state]
   (->> (select-keys new-state [:default-fonts :browser-fonts :document-fonts])
        (clj->js)
-       (.set addon-storage)))
+       (.set (.-local (.-storage js/browser)))))
 
 (defn configure-addon-for-current-site [key atom old-state new-state]
   (let [current-domain (:current-tab-url new-state)
         font-type (:default-fonts new-state)
         excluded-domains (:exclude (font-type new-state))
         ui (font-type ui-state)]
-    (if (nil? current-domain)
-      ()
-      ;(if (some #{current-domain} excluded-domains)
+    (if-not (nil? current-domain)
       (if (contains? excluded-domains current-domain)
         (configure-addon-for-current-site! (:disable ui))
         (configure-addon-for-current-site! (:enable ui))))))
@@ -64,55 +60,64 @@
   (println "old: " old-state)
   (println "new: " new-state))
 
-(defn domain-name [url] (get (str/split url #"/") 2))
+(defn domain-name [url]
+  (get (str/split url #"/") 2))
 
 (defn tab-activated [active-info]
-  (-> (.get (.-tabs js/browser) (.-tabId active-info))
-      (.then #(swap! app-state assoc :current-tab-url (domain-name (.-url %))))))
+  (let [tabId (:tabId (js->clj active-info :keywordize-keys true))]
+    (-> (.get (.-tabs js/browser) tabId)
+        (.then #(js->clj % :keywordize-keys true))
+        (.then #(:url %))
+        (.then #(domain-name %))
+        (.then #(swap! app-state assoc :current-tab-url %)))))
 
 (defn tab-changed [tab-id change-info tab-info]
-  (if (nil? (.-url change-info))
-    ()
-    (swap! app-state assoc :current-tab-url (domain-name (.-url change-info)))))
+  (let [url (:url (js->clj change-info :keywordize-keys true))]
+    (if-not (nil? url)
+      (swap! app-state assoc :current-tab-url (domain-name url)))))
 
 (defn browser-action-activated []
-  (if (contains? (:exclude ((:default-fonts @app-state) @app-state)) (:current-tab-url @app-state))
-    (swap! app-state
-           update-in [(:default-fonts @app-state) :exclude] disj (:current-tab-url @app-state))
-    (swap! app-state
-           update-in [(:default-fonts @app-state) :exclude] conj (:current-tab-url @app-state)))
-  (swap! app-state
-         update-in [(if (= (:default-fonts @app-state) :browser-fonts) :document-fonts :browser-fonts) :exclude] disj (:current-tab-url @app-state)))
+  (let [current-url (:current-tab-url @app-state)
+        default-fonts (:default-fonts @app-state)
+        not-default-fonts (if (= default-fonts :browser-fonts) :document-fonts :browser-fonts)]
+    (if (contains? (:exclude (default-fonts @app-state)) current-url)
+      (swap! app-state update-in [default-fonts :exclude] disj current-url)
+      (swap! app-state update-in [default-fonts :exclude] conj current-url))
+    (swap! app-state update-in [not-default-fonts :exclude] disj current-url)))
 
-(defn watch-over-app-state []
+(defn handle-communication-with-preference-page [request sender send-response]
+  (let [req (js->clj request :keywordize-keys true)
+        message (:message req)
+        data (js->clj (:data req) :keywordize-keys)]
+    (cond (= message "get-preferences") (send-response (clj->js @app-state))
+          (= message "set-preferences") (swap! app-state assoc :default-fonts (keyword (:default-fonts data))))))
+
+(defn start-watchers []
   ;(add-watch app-state :log log)
   (add-watch app-state :write-to-storage! write-to-storage!)
   (add-watch app-state :configure-addon-for-current-site configure-addon-for-current-site))
 
-(defn init []
-  (watch-over-app-state)
+(defn start-event-listeners []
+  (.addListener (.-onActivated (.-tabs js/browser)) tab-activated)
+  (.addListener (.-onUpdated (.-tabs js/browser)) tab-changed)
+  (.addListener (.-onClicked (.-browserAction js/browser)) browser-action-activated)
+  (.addListener (.-onMessage (.-runtime js/browser)) handle-communication-with-preference-page))
+
+(defn initialize-state []
   (load-state-from-storage!)
-  (-> (.query (.-tabs js/browser) (clj->js {:currentWindow true :active true}))
+  (-> (.query (.-tabs js/browser) #js {:currentWindow true :active true})
       (.then #(js->clj % :keywordize-keys true))
       (.then first)
       (.then #(:url %))
       (.then domain-name)
-      (.then #(swap! app-state assoc :current-tab-url %)))
-  )
+      (.then #(swap! app-state assoc :current-tab-url %))))
 
-(defn handle-options [request sender send-response]
-  (-> (js->clj request :keywordize-keys true)
-      (#(if (empty? %)
-          (send-response (clj->js @app-state))
-          (swap! app-state assoc :default-fonts (keyword (:default-fonts %)))))))
-
-(.addListener (.-onActivated (.-tabs js/browser)) tab-activated)
-(.addListener (.-onUpdated (.-tabs js/browser)) tab-changed)
-(.addListener (.-onClicked (.-browserAction js/browser)) browser-action-activated)
+(defn init []
+  (start-watchers)
+  (start-event-listeners)
+  (initialize-state))
 
 ;(.addListener (.-onInstalled (.-runtime js/browser)) init)
 ;(.addListener (.-onStartup (.-runtime js/browser)) init)
 (.addEventListener js/document "DOMContentLoaded" init)
-
-(.addListener (.-onMessage (.-runtime js/browser)) handle-options)
 

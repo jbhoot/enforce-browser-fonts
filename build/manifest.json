@@ -6,7 +6,7 @@
   "homepage_url": "https://github.com/jayesh-bhoot/enforce-browser-fonts",
   "browser_specific_settings": {
     "gecko": {
-      "id": "{18be7a20-8d8f-41f4-813b-4ee948461b8a}"
+      "id": "{83e08b00-32de-44e7-97bb-1bab84d1350f}"
     }
   },
   "browser_action": {
@@ -17,11 +17,11 @@
   },
   "background": {
     "scripts": [
-      "js/main.js"
+      "js/core.js"
     ]
   },
   "options_ui": {
-    "page": "options.html",
+    "page": "preferences.html",
     "browser_style": true
   },
   "icons": {
