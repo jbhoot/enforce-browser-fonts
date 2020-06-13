@@ -26,7 +26,7 @@ The toolbar icon also acts as a visual cue: If it is coloured, then browser font
   Firefox now lets the user to set a custom keyboard shortcut for each add-on
 - [x] **Now available from v1.** Configuration per website. As such, Firefox's setting is browser-wide. But I see a possibility of piping through the various extension APIs to make per-website configuration possible.
 
-# Current Limitations
+# Limitations
 
 - ~~Firefox stores this configuration browser-wide, not per-site. There is a way to emulate per-site enforcement, which is a milestone in the roadmap.~~ **Now available from v1**
 - Firefox has not (yet) implemented [this API](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/types/BrowserSetting/onChange), without which the addon cannot detect when user toggles the document fonts outside of addon, from browser preferences. Hence, the addon icon will go out of sync, at least until user uses the addon to toggle the fonts, or restarts the browser. This is not such a major annoyance, but worth mentioning anyway.
