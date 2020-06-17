@@ -5,7 +5,7 @@ I prefer to use my own fonts instead of fonts set by websites. While firefox pro
 This Firefox WebExtension lets you toggle between browser and website fonts by:
 
 1. clicking on the toolbar icon
-2. pressing keyboard combo: Alt-Comma
+2. pressing keyboard combo: @@html:<kbd>Alt-Comma</kbd>@@
 
 The toolbar icon also acts as a visual cue: If it is coloured, then browser fonts are enforced. Otherwise, website fonts are being used. The icon tooltip provides the textual cue for the same.
 
