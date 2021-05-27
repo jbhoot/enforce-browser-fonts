@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Enforce Browser Fonts",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Enforce browser fonts easily on websites instead of letting them use their own fonts",
   "homepage_url": "https://github.com/jayesh-bhoot/enforce-browser-fonts",
   "browser_specific_settings": {
