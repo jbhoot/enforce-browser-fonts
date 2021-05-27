@@ -35,16 +35,16 @@
 
 (defn load-state-from-storage! []
   (-> (.get (.-local (.-storage js/browser)))
-      (.then #(js->clj % :keywordize-keys true))
-      (.then #(assoc % :default-fonts (keyword (:default-fonts % (clj->js (:default-fonts @app-state))))))
-      (.then #(update-in % [:browser-fonts :exclude] set (:exclude (:browser-fonts %))))
-      (.then #(update-in % [:document-fonts :exclude] set (:exclude (:document-fonts %))))
-      (.then #(swap! app-state merge %))))
+    (.then #(js->clj % :keywordize-keys true))
+    (.then #(assoc % :default-fonts (keyword (:default-fonts % (clj->js (:default-fonts @app-state))))))
+    (.then #(update-in % [:browser-fonts :exclude] set (:exclude (:browser-fonts %))))
+    (.then #(update-in % [:document-fonts :exclude] set (:exclude (:document-fonts %))))
+    (.then #(swap! app-state merge %))))
 
 (defn write-to-storage! [key atom old-state new-state]
   (->> (select-keys new-state [:default-fonts :browser-fonts :document-fonts])
-       (clj->js)
-       (.set (.-local (.-storage js/browser)))))
+    (clj->js)
+    (.set (.-local (.-storage js/browser)))))
 
 (defn configure-addon-for-current-site [key atom old-state new-state]
   (let [current-domain (:current-tab-url new-state)
@@ -66,14 +66,15 @@
 (defn tab-activated [active-info]
   (let [tabId (:tabId (js->clj active-info :keywordize-keys true))]
     (-> (.get (.-tabs js/browser) tabId)
-        (.then #(js->clj % :keywordize-keys true))
-        (.then #(:url %))
-        (.then #(domain-name %))
-        (.then #(swap! app-state assoc :current-tab-url %)))))
+      (.then #(js->clj % :keywordize-keys true))
+      (.then #(:url %))
+      (.then #(domain-name %))
+      (.then #(swap! app-state assoc :current-tab-url %)))))
 
 (defn tab-changed [tab-id change-info tab-info]
-  (let [url (:url (js->clj change-info :keywordize-keys true))]
-    (if-not (nil? url)
+  (let [url (:url (js->clj change-info :keywordize-keys true))
+        active (:active (js->clj tab-info :keywordize-keys true))]
+    (if (and active (not (nil? url)))
       (swap! app-state assoc :current-tab-url (domain-name url)))))
 
 (defn browser-action-activated []
@@ -90,7 +91,7 @@
         message (:message req)
         data (js->clj (:data req) :keywordize-keys)]
     (cond (= message "get-preferences") (send-response (clj->js @app-state))
-          (= message "set-preferences") (swap! app-state assoc :default-fonts (keyword (:default-fonts data))))))
+      (= message "set-preferences") (swap! app-state assoc :default-fonts (keyword (:default-fonts data))))))
 
 (defn start-watchers []
   ;(add-watch app-state :log log)
@@ -106,11 +107,11 @@
 (defn initialize-state []
   (load-state-from-storage!)
   (-> (.query (.-tabs js/browser) #js {:currentWindow true :active true})
-      (.then #(js->clj % :keywordize-keys true))
-      (.then first)
-      (.then #(:url %))
-      (.then domain-name)
-      (.then #(swap! app-state assoc :current-tab-url %))))
+    (.then #(js->clj % :keywordize-keys true))
+    (.then first)
+    (.then #(:url %))
+    (.then domain-name)
+    (.then #(swap! app-state assoc :current-tab-url %))))
 
 (defn init []
   (start-watchers)

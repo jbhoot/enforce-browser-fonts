@@ -13,7 +13,7 @@
 
 (defn transmit [key atom old-state new-state]
   (-> (.-runtime js/browser)
-      (.sendMessage #js {:message "set-preferences" :data (clj->js new-state)})))
+    (.sendMessage #js {:message "set-preferences" :data (clj->js new-state)})))
 
 (defn start-event-listeners []
   (.addEventListener (.getElementById js/document "browser-fonts") "change" #(swap! pref-state assoc :default-fonts :browser-fonts))
@@ -26,10 +26,10 @@
 
 (defn initialize-state []
   (-> (.-runtime js/browser)
-      (.sendMessage #js {:message "get-preferences" :data #js {}})
-      (.then #(js->clj % :keywordize-keys true))
-      (.then #(keyword (:default-fonts %)))
-      (.then #(swap! pref-state assoc :default-fonts %))))
+    (.sendMessage #js {:message "get-preferences" :data #js {}})
+    (.then #(js->clj % :keywordize-keys true))
+    (.then #(keyword (:default-fonts %)))
+    (.then #(swap! pref-state assoc :default-fonts %))))
 
 (defn init []
   (start-watchers)
