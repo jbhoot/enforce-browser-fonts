@@ -3,7 +3,7 @@
 ; Of the other 3 options :whitespace,:simple and :advanced,
 ; :whitespace is the fastest to compile.
 ; So best to use it during dev and :advanced for production.
-{:optimizations :advanced
+{:optimizations :whitespace
  :infer-externs true
  :output-dir    "tmp"
  :output-to     "build/js/core.js"}
