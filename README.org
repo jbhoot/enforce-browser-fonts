@@ -14,7 +14,7 @@ The toolbar icon also acts as a visual cue: If it is coloured, then browser font
 
 * Demo
 
-[[file:static/images/demo.gif]]
+[[file:demo.gif]]
 
 * Releases
 
