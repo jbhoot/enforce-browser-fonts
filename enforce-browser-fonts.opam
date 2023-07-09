@@ -11,6 +11,7 @@ bug-reports: "https://github.com/jyshb/enforce-browser-fonts/issues"
 depends: [
   "dune" {>= "3.8"}
   "melange" {>= "1.0.0"}
+  "reason"
   "ocaml-lsp-server"
   "utop"
   "ocamlformat"

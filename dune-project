@@ -18,6 +18,7 @@
  (depends
   (melange
    (>= 1.0.0))
+  reason ; reason-promise needs it
   ocaml-lsp-server
   utop
   ocamlformat))
