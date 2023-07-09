@@ -3,8 +3,8 @@ module type Storage_args = sig
   type t
 
   type 'v change =
-    { old_value : 'v option [@bs.as "oldValue"]
-    ; new_value : 'v option [@bs.as "newValue"]
+    { oldValue : 'v option [@bs.as "oldValue"]
+    ; newValue : 'v option [@bs.as "newValue"]
     }
 
   type changes
