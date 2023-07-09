@@ -1,43 +1,34 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
-    <style>
-        html {
-            font-size: 10px;
-        }
-
-        .form {
-            display: flex;
-            flex-direction: column;
-            font-size: 1.5rem;
-            padding: 10px;
-        }
-
-        .input {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 10px;
-        }
-
-        .input > *:not(:last-child) {
-            margin-right: 10px;
-        }
-    </style>
+    <title> Preferences for Enforce Browser Fonts </title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-<form class="form">
-    <label class="input">
-        <input type="radio" name="default-fonts" id="browser-fonts">
-        <span>Enforce the browser fonts for all sites by default. Use this option if you want to enforce the browser fonts for most websites, and only want to tell the add-on to disable browser fonts for a select few websites.</span>
-    </label>
-    <label class="input">
-        <input type="radio" name="default-fonts" id="document-fonts">
-        <span>Disable the browser fonts for all sites by default. Use this option if you want to disable the browser fonts for most websites, and only want to tell the add-on to enforce browser fonts for a select few websites.</span>
-    </label>
-</form>
-<script src="js/preferences.js"></script>
+<div id='root' class="box">
+    <form novalidate class='stack'>
+        <h1> Preferences </h1>
+        <fieldset>
+            <div class='cluster'>
+                <input type="radio" name="default-fonts" id="browser-fonts">
+                <label for='browser-fonts'>
+                    <span>Enforce browser fonts on all websites by default</span>
+                    <span>Recommended if you want to enforce your chosen fonts on most websites, and allow website fonts on a case-by-case basis.</span>
+                </label>
+            </div>
+            <div class='cluster'>
+                <input type="radio" name="default-fonts" id="document-fonts">
+                <label for='document-fonts'>
+                    <span>Don't enforce browser fonts on websites by default.</span>
+                    <span>Recommended if you want to keep the website fonts for most websites, and only override the website fonts on a case-by-case basis.</span>
+                </label>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<script src='./preferences.build.js'></script>
 </body>
 </html>
