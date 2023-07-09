@@ -16,7 +16,7 @@ are being used. The icon tooltip provides the textual cue for the same.
 
 ## Demo
 
-![Demo](./demo.gif)
+![Demo](./demos/demo.gif)
 
 ## Releases
 
