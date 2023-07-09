@@ -1,0 +1,24 @@
+{
+  "name": "enforce-browser-fonts",
+  "version": "1.2",
+  "description": "Enforce browser fonts easily on websites instead of letting them use their own fonts",
+  "main": "src/index.js",
+  "repository": "https://github.com/jyshb/enforce-browser-fonts",
+  "author": "Jayesh Bhoot",
+  "license": "MIT",
+  "dependencies": {
+    "reason-promise": "^1.1.5",
+    "rxjs": "^7.8.1"
+  },
+  "scripts": {
+    "clean": "dune clean",
+    "build": "npm run clean && dune build @melange && esbuild ./_build/default/src/output/src/{bg.js,long_click.js,preferences.js} --bundle --out-extension:.js=.build.js --outdir=./_build/default/src/output/src",
+    "test": "npm run build && web-ext run --source-dir ./_build/default/src/output --browser-console --url 'https://bhoot.sh' --reload",
+    "build:ext": "npm run build && npx web-ext build --source-dir ./_build/default/src/output --ignore-files './src/**/!(*.build).js'",
+    "build:src-zip": "zip -r src-pkg.zip.tmp manifest.json package*.json dune* *.opam *.md src/* && rm -rf src-pkg.zip && mv src-pkg.zip.tmp src-pkg.zip"
+  },
+  "devDependencies": {
+    "esbuild": "^0.16.9",
+    "web-ext": "^7.6.2"
+  }
+}

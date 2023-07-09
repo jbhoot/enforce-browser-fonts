@@ -3,7 +3,7 @@
   "name": "Enforce Browser Fonts",
   "version": "1.2",
   "description": "Enforce browser fonts easily on websites instead of letting them use their own fonts",
-  "homepage_url": "https://github.com/jayesh-bhoot/enforce-browser-fonts",
+  "homepage_url": "https://github.com/jyshb/enforce-browser-fonts",
   "browser_specific_settings": {
     "gecko": {
       "id": "{83e08b00-32de-44e7-97bb-1bab84d1350f}"
