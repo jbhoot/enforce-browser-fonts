@@ -1,5 +1,10 @@
-(* { "default-fonts": "browser-fonts", "browser-fonts": { "exclude": [] },
-   "document-fonts": { "exclude": [] } } *)
+(*
+  {
+    "default-fonts": "browser-fonts",
+    "browser-fonts": { "exclude": [] },
+    "document-fonts": { "exclude": [] }
+  }
+*)
 
 module Storage_args = struct
   type excluded_urls = { exclude : string array }
@@ -10,15 +15,15 @@ module Storage_args = struct
     ; documentFonts : excluded_urls [@bs.as "document-fonts"]
     }
 
-  type 'v change =
+  type 'v prop_diff =
     { oldValue : 'v option
     ; newValue : 'v option
     }
 
-  type changes =
-    { defaultFontsChange : string change [@bs.as "default-fonts"]
-    ; browserFontsChange : excluded_urls change [@bs.as "browser-fonts"]
-    ; documentFontsChange : excluded_urls change [@bs.as "document-fonts"]
+  type t_diff =
+    { defaultFontsChange : string prop_diff [@bs.as "default-fonts"]
+    ; browserFontsChange : excluded_urls prop_diff [@bs.as "browser-fonts"]
+    ; documentFontsChange : excluded_urls prop_diff [@bs.as "document-fonts"]
     }
 end
 

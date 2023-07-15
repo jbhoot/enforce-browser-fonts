@@ -1,15 +1,3 @@
-module type Storage_args = sig
-  (* todo: 't can only be an object / record *)
-  type t
-
-  type 'v change =
-    { oldValue : 'v option [@bs.as "oldValue"]
-    ; newValue : 'v option [@bs.as "newValue"]
-    }
-
-  type changes
-end
-
 module Browser = struct
   type tab_id
 
@@ -69,9 +57,21 @@ module Browser = struct
       [@@bs.val] [@@bs.scope "browser", "tabs"]
   end
 
+  module type Storage_args = sig
+    (* todo: 't can only be an object / record *)
+    type t
+
+    type 'v prop_diff =
+      { oldValue : 'v option
+      ; newValue : 'v option
+      }
+
+    type t_diff
+  end
+
   module Storage (Args : Storage_args) = struct
     type t = Args.t
-    type changes = Args.changes
+    type t_diff = Args.t_diff
 
     type area_name =
       [ `sync
@@ -88,11 +88,11 @@ module Browser = struct
     end
 
     module On_changed = struct
-      external add_listener : (Args.changes -> area_name -> unit) -> unit
+      external add_listener : (t_diff -> area_name -> unit) -> unit
         = "addListener"
         [@@bs.val] [@@bs.scope "browser", "storage", "onChanged"]
 
-      external remove_listener : (Args.changes -> area_name -> unit) -> unit
+      external remove_listener : (t_diff -> area_name -> unit) -> unit
         = "removeListener"
         [@@bs.val] [@@bs.scope "browser", "storage", "onChanged"]
     end
