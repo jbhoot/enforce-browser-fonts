@@ -29,13 +29,13 @@ type t =
   ; document_fonts_excludes : string Set.t
   }
 
-let serialise t =
-  { Common.Storage_args.defaultFonts = t.default_fonts |. Font_type.to_string
+let serialise t : Common.Storage_types.t_whole =
+  { defaultFonts = t.default_fonts |. Font_type.to_string
   ; browserFonts = { exclude = t.browser_fonts_excludes |. Set.to_array }
   ; documentFonts = { exclude = t.document_fonts_excludes |. Set.to_array }
   }
 
-let deserialise (serialisedT : Common.Storage_args.t) =
+let deserialise (serialisedT : Common.Storage_types.t_whole) =
   { default_fonts = serialisedT.defaultFonts |. Font_type.from_string
   ; browser_fonts_excludes = serialisedT.browserFonts.exclude |. Set.from_array
   ; document_fonts_excludes =
