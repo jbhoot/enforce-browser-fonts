@@ -46,7 +46,6 @@ let s_default_font_changed =
 let _ =
   s_default_font_changed
   |. Stream.subscribe (fun v ->
-         Js.Console.log (v |. Data.Font_type.to_string);
          Storage_types.t_partial ~defaultFonts:(Data.Font_type.to_string v) ()
          |. Storage.Local.set
          |. ignore)

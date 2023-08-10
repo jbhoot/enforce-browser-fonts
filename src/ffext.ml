@@ -4,6 +4,7 @@ module Browser = struct
   type tab =
     { id : tab_id
     ; pinned : bool
+    ; url: string
     }
 
   module Browser_action = struct
