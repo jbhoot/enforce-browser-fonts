@@ -29,12 +29,7 @@ let s_initial_config =
   |. Stream.pipe1 (Op.map (fun v _i -> Data.deserialise v))
 
 let s_initial_default_font =
-  s_initial_config
-  |. Stream.pipe2
-       (Op.map (fun v _i -> v.Data.default_fonts))
-       (Op.tap (fun v ->
-            Js.Console.log2 "s_initial_default_font: "
-              (Data.Font_type.to_string v)))
+  s_initial_config |. Stream.pipe1 (Op.map (fun v _i -> v.Data.default_fonts))
 
 let s_pref_updated =
   Stream.from_event_pattern2
@@ -52,52 +47,32 @@ let s_default_font_pref_updated =
             |. Option.get
             |. Data.Font_type.from_string))
 
-let s_default_font_changed =
-  Op.merge2 s_initial_default_font s_default_font_pref_updated
+let filter_browser_fonts =
+  Op.filter (fun v _i ->
+      match v with
+      | Data.Font_type.Browser_fonts -> true
+      | Document_fonts -> false)
+
+let filter_document_fonts =
+  Op.filter (fun v _i ->
+      match v with
+      | Data.Font_type.Browser_fonts -> false
+      | Document_fonts -> true)
 
 let s_enforce_browser_fonts =
-  s_default_font_changed
-  |. Stream.pipe2
-       (Op.filter (fun v _i ->
-            match v with
-            | Data.Font_type.Browser_fonts -> true
-            | Document_fonts -> false))
-       (Op.tap (fun v ->
-            Js.Console.log2 "s_enforce_browser_fonts: "
-              (Data.Font_type.to_string v)))
+  Op.merge2 s_initial_default_font s_default_font_pref_updated
+  |. Stream.pipe1 filter_browser_fonts
 
 let s_enforce_document_fonts =
-  s_default_font_changed
-  |. Stream.pipe2
-       (Op.filter (fun v _i ->
-            match v with
-            | Data.Font_type.Browser_fonts -> false
-            | Document_fonts -> true))
-       (Op.tap (fun v ->
-            Js.Console.log2 "s_enforce_document_fonts: "
-              (Data.Font_type.to_string v)))
+  Op.merge2 s_initial_default_font s_default_font_pref_updated
+  |. Stream.pipe1 filter_document_fonts
 
 let s_stopper_enforce_browser_fonts =
-  s_default_font_pref_updated
-  |. Stream.pipe2
-       (Op.filter (fun v _i ->
-            match v with
-            | Data.Font_type.Browser_fonts -> true
-            | Document_fonts -> false))
-       (Op.tap (fun v ->
-            Js.Console.log2 "s_enforce_browser_fonts: "
-              (Data.Font_type.to_string v)))
+  (* NOTE: Do not use a merged stream of (s_initial_default_font, s_default_font_pref_updated) as a stopper stream. The value coming through s_initial_default_font messes things up when config is updated in add-on settings. *)
+  s_default_font_pref_updated |. Stream.pipe1 filter_browser_fonts
 
 let s_stopper_enforce_document_fonts =
-  s_default_font_pref_updated
-  |. Stream.pipe2
-       (Op.filter (fun v _i ->
-            match v with
-            | Data.Font_type.Browser_fonts -> false
-            | Document_fonts -> true))
-       (Op.tap (fun v ->
-            Js.Console.log2 "s_enforce_document_fonts: "
-              (Data.Font_type.to_string v)))
+  s_default_font_pref_updated |. Stream.pipe1 filter_document_fonts
 
 let s_browser_action_clicked =
   Stream.from_event_pattern2
