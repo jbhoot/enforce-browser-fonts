@@ -4,10 +4,19 @@ module Browser = struct
   type tab =
     { id : tab_id
     ; pinned : bool
-    ; url: string
+    ; url : string
     }
 
   module Browser_action = struct
+    type icon_details = { path : string }
+    type title_details = { title : string }
+
+    external set_icon : icon_details -> (unit, unit) Promise.Js.t = "setIcon"
+      [@@bs.val] [@@bs.scope "browser", "browserAction"]
+
+    external set_title : title_details -> (unit, unit) Promise.Js.t = "setTitle"
+      [@@bs.val] [@@bs.scope "browser", "browserAction"]
+
     module On_clicked = struct
       (* TODO: Turn modifiers into a polymorphic type *)
       type on_click_data =
