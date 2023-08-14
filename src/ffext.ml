@@ -66,6 +66,15 @@ module Browser = struct
       = "update"
       [@@bs.val] [@@bs.scope "browser", "tabs"]
   end
+
+  module Browser_settings = struct
+    module Use_document_fonts = struct
+      type t = { value : bool }
+
+      external set : t -> (bool, bool) Promise.Js.t = "set"
+        [@@bs.val] [@@bs.scope "browser", "browserSettings", "useDocumentFonts"]
+    end
+  end
 end
 
 module type Storage_args_sig = sig

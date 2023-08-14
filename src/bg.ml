@@ -152,13 +152,18 @@ let _ =
              Browser.Browser_action.set_icon { path = "./src/icons/off.svg" }
              |. ignore;
              Browser.Browser_action.set_title { title = "Using document fonts" }
+             |. ignore;
+             Browser.Browser_settings.Use_document_fonts.set { value = true }
              |. ignore
            | false ->
              Browser.Browser_action.set_icon { path = "./src/icons/on.svg" }
              |. ignore;
              Browser.Browser_action.set_title { title = "Using browser fonts" }
+             |. ignore;
+             Browser.Browser_settings.Use_document_fonts.set { value = false }
              |. ignore
          in
+
          Js.Console.log2 "Setting"
            (Common.Storage_types.t_partial
               ~browserFonts:{ exclude = Set.to_array new_set }
@@ -188,13 +193,18 @@ let _ =
              Browser.Browser_action.set_icon { path = "./src/icons/on.svg" }
              |. ignore;
              Browser.Browser_action.set_title { title = "Using browser fonts" }
+             |. ignore;
+             Browser.Browser_settings.Use_document_fonts.set { value = false }
              |. ignore
            | false ->
              Browser.Browser_action.set_icon { path = "./src/icons/off.svg" }
              |. ignore;
              Browser.Browser_action.set_title { title = "Using website fonts" }
+             |. ignore;
+             Browser.Browser_settings.Use_document_fonts.set { value = true }
              |. ignore
          in
+
          Js.Console.log2 "Setting"
            (Common.Storage_types.t_partial
               ~documentFonts:{ exclude = Set.to_array new_set }
