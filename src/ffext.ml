@@ -65,6 +65,57 @@ module Browser = struct
     external update : tab_id -> update_properties -> (tab, string) Promise.Js.t
       = "update"
       [@@bs.val] [@@bs.scope "browser", "tabs"]
+
+    type query_obj =
+      { active : bool option
+      ; currentWindow : bool option
+      }
+
+    external query : query_obj -> (tab array, string) Promise.Js.t = "query"
+      [@@bs.val] [@@bs.scope "browser", "tabs"]
+
+    module On_activated = struct
+      type active_info =
+        { previousTabId : int
+        ; tabId : int
+        ; windowId : int
+        }
+
+      external add_listener : (active_info -> unit) -> unit = "addListener"
+        [@@bs.val] [@@bs.scope "browser", "tabs", "onActivated"]
+
+      external remove_listener : (active_info -> unit) -> unit
+        = "removeListener"
+        [@@bs.val] [@@bs.scope "browser", "tabs", "onActivated"]
+    end
+
+    module On_updated = struct
+      type filter =
+        { urls : string array option
+        ; properties : string array option
+        ; tabId : int option
+        ; windowId : int option
+        }
+
+      type change_info =
+        { (* NOTE: Incomplete record *)
+          pinned : bool option
+        ; title : string option
+        ; url : string option
+        }
+
+      external add_listener : (int -> change_info -> tab -> unit) -> unit
+        = "addListener"
+        [@@bs.val] [@@bs.scope "browser", "tabs", "onUpdated"]
+
+      external add_listener_with_filter :
+        (int -> change_info -> tab -> unit) -> filter -> unit = "addListener"
+        [@@bs.val] [@@bs.scope "browser", "tabs", "onUpdated"]
+
+      external remove_listener : (int -> change_info -> tab -> unit) -> unit
+        = "removeListener"
+        [@@bs.val] [@@bs.scope "browser", "tabs", "onUpdated"]
+    end
   end
 
   module Browser_settings = struct

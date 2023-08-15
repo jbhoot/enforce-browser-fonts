@@ -178,6 +178,39 @@ module Op = struct
     -> 'a Stream.t = "merge"
     [@@bs.module "rxjs"]
 
+  external merge6 :
+       'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t = "merge"
+    [@@bs.module "rxjs"]
+
+  external merge7 :
+       'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t = "merge"
+    [@@bs.module "rxjs"]
+
+  external merge8 :
+       'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t
+    -> 'a Stream.t = "merge"
+    [@@bs.module "rxjs"]
+
   external combineLatest2 :
     'a Stream.t -> 'b Stream.t -> ('a -> 'b -> 'c) -> 'c Stream.t
     = "combineLatest"

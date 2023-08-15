@@ -4,6 +4,11 @@ open Common
 open Ffext
 
 (*
+- strip to domain name only
+- tabUpdated: use tab.isLoading flag to filter state?
+*)
+
+(*
 . (initial_state, state_change) -> (icon, tooltip, about_config)
 . browserAction.clicked -> (state_change) -> (save website to excluded or included)
 *)
@@ -19,8 +24,10 @@ open Ffext
 (*
    let _ = Browser.Browser_action.On_clicked.
 *)
+let default_data = Data.make_default ()
+
 let s_initial_config =
-  Data.make_default ()
+  default_data
   |. Data.serialise
   |. Storage.Local.get
   |. Stream.from_promise
@@ -87,13 +94,9 @@ let filter_document_fonts =
       | Data.Font_type.Browser_fonts -> false
       | Document_fonts -> true)
 
-let s_browser_fonts_preferred =
+let c_preferred_fonts =
   Op.merge2 s_initial_preferred_font s_preferred_font_changed
-  |. Stream.pipe1 filter_browser_fonts
-
-let s_document_fonts_preferred =
-  Op.merge2 s_initial_preferred_font s_preferred_font_changed
-  |. Stream.pipe1 filter_document_fonts
+  |. Op.hold default_data.default_fonts
 
 let c_excluded_from_browser_fonts =
   Op.merge2 s_initial_excluded_from_browser_fonts
@@ -105,13 +108,6 @@ let c_excluded_from_document_fonts =
     s_excluded_from_document_fonts_changed
   |. Op.hold (Set.empty ())
 
-let s_until_browser_fonts_preferred =
-  (* NOTE: Do not use a merged stream of (s_initial_default_font, s_default_font_pref_updated) as a stopper stream. The value coming through s_initial_default_font messes things up when config is updated in add-on settings. *)
-  s_preferred_font_changed |. Stream.pipe1 filter_browser_fonts
-
-let s_until_document_fonts_preferred =
-  s_preferred_font_changed |. Stream.pipe1 filter_document_fonts
-
 let s_browser_action_activated =
   Stream.from_event_pattern2
     (fun handler -> Browser.Browser_action.On_clicked.add_listener handler)
@@ -119,98 +115,120 @@ let s_browser_action_activated =
       Browser.Browser_action.On_clicked.remove_listener handler)
     (fun tab _on_click_data -> tab)
 
-let s_browser_action_to_apply_browser_fonts_activated =
-  s_browser_fonts_preferred
-  |. Stream.pipe1
-       (Op.merge_map (fun _v _i ->
-            s_browser_action_activated
-            |. Stream.pipe1 (Op.take_until s_until_document_fonts_preferred)))
+let update_excluded_domains curr_set (tab : Browser.tab) =
+  match Set.has curr_set tab.url with
+  | true ->
+    Set.delete curr_set tab.url |. ignore;
+    curr_set
+  | false -> Set.add curr_set tab.url
 
-let s_browser_action_to_apply_document_fonts_activated =
-  s_document_fonts_preferred
-  |. Stream.pipe1
-       (Op.merge_map (fun _v _i ->
-            s_browser_action_activated
-            |. Stream.pipe1 (Op.take_until s_until_browser_fonts_preferred)))
+let store_excluded_domains set font_type =
+  match font_type with
+  | Data.Font_type.Browser_fonts ->
+    Storage.Local.set
+      (Common.Storage_types.t_partial
+         ~browserFonts:{ exclude = Set.to_array set }
+         ())
+    |. ignore
+  | Data.Font_type.Document_fonts ->
+    Storage.Local.set
+      (Common.Storage_types.t_partial
+         ~documentFonts:{ exclude = Set.to_array set }
+         ())
+    |. ignore
+
+let enforce font_type =
+  match font_type with
+  | Data.Font_type.Browser_fonts ->
+    Browser.Browser_action.set_icon { path = "./src/icons/on.svg" } |. ignore;
+    Browser.Browser_action.set_title { title = "Using browser fonts" } |. ignore;
+    Browser.Browser_settings.Use_document_fonts.set { value = false } |. ignore
+  | Document_fonts ->
+    Browser.Browser_action.set_icon { path = "./src/icons/off.svg" } |. ignore;
+    Browser.Browser_action.set_title { title = "Using document fonts" }
+    |. ignore;
+    Browser.Browser_settings.Use_document_fonts.set { value = true } |. ignore
+
+let s_tab_activated =
+  Stream.from_event_pattern
+    (fun handler -> Browser.Tabs.On_activated.add_listener handler)
+    (fun handler _signal -> Browser.Tabs.On_activated.remove_listener handler)
+    (fun active_info -> active_info)
+
+let s_tab_updated =
+  Stream.from_event_pattern3
+    (fun handler -> Browser.Tabs.On_updated.add_listener handler)
+    (fun handler _signal -> Browser.Tabs.On_updated.remove_listener handler)
+    (fun _tab_id _change_info tab -> tab)
+
+let s_enforcement_requested =
+  Op.merge8
+    (s_initial_preferred_font |. Stream.pipe1 (Op.map (fun _v _i -> ())))
+    (s_preferred_font_changed |. Stream.pipe1 (Op.map (fun _v _i -> ())))
+    (s_initial_excluded_from_browser_fonts
+    |. Stream.pipe1 (Op.map (fun _v _i -> ())))
+    (s_excluded_from_browser_fonts_changed
+    |. Stream.pipe1 (Op.map (fun _v _i -> ())))
+    (s_initial_excluded_from_document_fonts
+    |. Stream.pipe1 (Op.map (fun _v _i -> ())))
+    (s_excluded_from_document_fonts_changed
+    |. Stream.pipe1 (Op.map (fun _v _i -> ())))
+    (s_tab_activated
+    |. Stream.pipe2
+         (Op.map (fun _v _i -> ()))
+         (Op.tap (fun _v -> Js.Console.log "activated")))
+    (s_tab_updated
+    |. Stream.pipe2
+         (Op.map (fun _v _i -> ()))
+         (Op.tap (fun _v -> Js.Console.log "updated")))
+
+(* TODO: Messes up the icon update the first time. *)
+(* let c_current_tab =
+   s_enforcement_requested
+   |. Stream.pipe1
+        (Op.merge_map (fun _v _i ->
+             Browser.Tabs.query { active = Some true; currentWindow = Some true }
+             |. Stream.from_promise))
+   |. Op.hold [||] *)
 
 let _ =
-  s_browser_action_to_apply_browser_fonts_activated
+  s_browser_action_activated
   |. Stream.subscribe (fun tab ->
-         let curr_set = Cell.get_value c_excluded_from_browser_fonts in
-         Js.Console.log2 "before c_excluded_from_browser_fonts"
-           (curr_set |. Set.to_array);
-         let new_set =
-           match Set.has curr_set tab.url with
-           | true ->
-             Set.delete curr_set tab.url |. ignore;
-             curr_set
-           | false -> Set.add curr_set tab.url
-         in
-         let () =
-           match Set.has new_set tab.url with
-           | true ->
-             Browser.Browser_action.set_icon { path = "./src/icons/off.svg" }
-             |. ignore;
-             Browser.Browser_action.set_title { title = "Using document fonts" }
-             |. ignore;
-             Browser.Browser_settings.Use_document_fonts.set { value = true }
-             |. ignore
-           | false ->
-             Browser.Browser_action.set_icon { path = "./src/icons/on.svg" }
-             |. ignore;
-             Browser.Browser_action.set_title { title = "Using browser fonts" }
-             |. ignore;
-             Browser.Browser_settings.Use_document_fonts.set { value = false }
-             |. ignore
-         in
-
-         Js.Console.log2 "Setting"
-           (Common.Storage_types.t_partial
-              ~browserFonts:{ exclude = Set.to_array new_set }
-              ());
-         Storage.Local.set
-           (Common.Storage_types.t_partial
-              ~browserFonts:{ exclude = Set.to_array new_set }
-              ())
-         |. ignore)
+         match Cell.get_value c_preferred_fonts with
+         | Browser_fonts ->
+           c_excluded_from_browser_fonts
+           |. Cell.get_value
+           |. update_excluded_domains tab
+           |. store_excluded_domains Browser_fonts
+         | Document_fonts ->
+           c_excluded_from_document_fonts
+           |. Cell.get_value
+           |. update_excluded_domains tab
+           |. store_excluded_domains Document_fonts)
 
 let _ =
-  s_browser_action_to_apply_document_fonts_activated
-  |. Stream.subscribe (fun tab ->
-         let curr_set = Cell.get_value c_excluded_from_document_fonts in
-         Js.Console.log2 "before c_excluded_from_document_fonts"
-           (curr_set |. Set.to_array);
-         let new_set =
-           match Set.has curr_set tab.url with
-           | true ->
-             Set.delete curr_set tab.url |. ignore;
-             curr_set
-           | false -> Set.add curr_set tab.url
-         in
-         let () =
-           match Set.has new_set tab.url with
-           | true ->
-             Browser.Browser_action.set_icon { path = "./src/icons/on.svg" }
-             |. ignore;
-             Browser.Browser_action.set_title { title = "Using browser fonts" }
-             |. ignore;
-             Browser.Browser_settings.Use_document_fonts.set { value = false }
-             |. ignore
-           | false ->
-             Browser.Browser_action.set_icon { path = "./src/icons/off.svg" }
-             |. ignore;
-             Browser.Browser_action.set_title { title = "Using website fonts" }
-             |. ignore;
-             Browser.Browser_settings.Use_document_fonts.set { value = true }
-             |. ignore
-         in
-
-         Js.Console.log2 "Setting"
-           (Common.Storage_types.t_partial
-              ~documentFonts:{ exclude = Set.to_array new_set }
-              ());
-         Storage.Local.set
-           (Common.Storage_types.t_partial
-              ~documentFonts:{ exclude = Set.to_array new_set }
-              ())
+  s_enforcement_requested
+  |. Stream.subscribe (fun _ ->
+         Browser.Tabs.query { active = Some true; currentWindow = Some true }
+         |. Promise.Js.toResult
+         |. Promise.getOk (fun tabs ->
+                match Array.to_list tabs with
+                | [] -> ()
+                | tab :: _ -> (
+                  Js.Console.log tab.url;
+                  match Cell.get_value c_preferred_fonts with
+                  | Browser_fonts -> (
+                    let excluded_set =
+                      Cell.get_value c_excluded_from_browser_fonts
+                    in
+                    match Set.has excluded_set tab.url with
+                    | true -> enforce Document_fonts
+                    | false -> enforce Browser_fonts)
+                  | Document_fonts -> (
+                    let excluded_set =
+                      Cell.get_value c_excluded_from_document_fonts
+                    in
+                    match Set.has excluded_set tab.url with
+                    | true -> enforce Browser_fonts
+                    | false -> enforce Document_fonts)))
          |. ignore)
