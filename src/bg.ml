@@ -94,19 +94,25 @@ let filter_document_fonts =
       | Data.Font_type.Browser_fonts -> false
       | Document_fonts -> true)
 
-let c_preferred_fonts =
+let s_preferred_fonts_updated =
   Op.merge2 s_initial_preferred_font s_preferred_font_changed
-  |. Op.hold default_data.default_fonts
 
-let c_excluded_from_browser_fonts =
+let c_preferred_fonts =
+  s_preferred_fonts_updated |. Op.hold default_data.default_fonts
+
+let s_excluded_from_browser_fonts_updated =
   Op.merge2 s_initial_excluded_from_browser_fonts
     s_excluded_from_browser_fonts_changed
-  |. Op.hold (Set.empty ())
 
-let c_excluded_from_document_fonts =
+let c_excluded_from_browser_fonts =
+  s_excluded_from_browser_fonts_updated |. Op.hold (Set.empty ())
+
+let s_excluded_from_document_fonts_updated =
   Op.merge2 s_initial_excluded_from_document_fonts
     s_excluded_from_document_fonts_changed
-  |. Op.hold (Set.empty ())
+
+let c_excluded_from_document_fonts =
+  s_excluded_from_document_fonts_updated |. Op.hold (Set.empty ())
 
 let s_browser_action_activated =
   Stream.from_event_pattern2
@@ -162,16 +168,11 @@ let s_tab_updated =
     (fun _tab_id _change_info tab -> tab)
 
 let s_enforcement_requested =
-  Op.merge8
-    (s_initial_preferred_font |. Stream.pipe1 (Op.map (fun _v _i -> ())))
-    (s_preferred_font_changed |. Stream.pipe1 (Op.map (fun _v _i -> ())))
-    (s_initial_excluded_from_browser_fonts
+  Op.merge5
+    (s_preferred_fonts_updated |. Stream.pipe1 (Op.map (fun _v _i -> ())))
+    (s_excluded_from_browser_fonts_updated
     |. Stream.pipe1 (Op.map (fun _v _i -> ())))
-    (s_excluded_from_browser_fonts_changed
-    |. Stream.pipe1 (Op.map (fun _v _i -> ())))
-    (s_initial_excluded_from_document_fonts
-    |. Stream.pipe1 (Op.map (fun _v _i -> ())))
-    (s_excluded_from_document_fonts_changed
+    (s_excluded_from_document_fonts_updated
     |. Stream.pipe1 (Op.map (fun _v _i -> ())))
     (s_tab_activated
     |. Stream.pipe2
