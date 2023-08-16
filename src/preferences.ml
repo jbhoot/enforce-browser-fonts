@@ -13,14 +13,6 @@ let s_initial_default_font =
        (Op.map (fun v _i -> Data.deserialise v))
        (Op.map (fun v _i -> v.Data.default_fonts))
 
-let _ =
-  Stream.subscribe s_initial_default_font (fun v ->
-      let input_id = Data.Font_type.to_string v in
-      document
-      |. Document.get_element_by_id input_id
-      |. InputElement.from_element
-      |. InputElement.set_checked true)
-
 let s_document_font_selected =
   document
   |. Document.get_element_by_id
@@ -42,6 +34,15 @@ let s_default_font_changed =
             Generic_ev.current_target ev
             |. InputElement.get_value
             |. Data.Font_type.from_string))
+
+let _ =
+  s_initial_default_font
+  |. Stream.subscribe (fun v ->
+         let input_id = Data.Font_type.to_string v in
+         document
+         |. Document.get_element_by_id input_id
+         |. InputElement.from_element
+         |. InputElement.set_checked true)
 
 let _ =
   s_default_font_changed
