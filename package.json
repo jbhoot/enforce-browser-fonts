@@ -12,10 +12,10 @@
   },
   "scripts": {
     "clean": "dune clean",
-    "build": "npm run clean && dune build @melange && esbuild ./_build/default/src/output/src/{bg.js,preferences.js} --bundle --out-extension:.js=.build.js --outdir=./_build/default/src/output/src",
     "dev:melange": "dune build @melange -w",
     "dev:esbuild": "ls ./_build/default/src/output/src/{bg.js,preferences.js} | entr -s 'esbuild ./_build/default/src/output/src/{bg.js,preferences.js} --bundle --out-extension:.js=.build.js --outdir=./_build/default/src/output/src'",
     "dev:webext": "web-ext run --source-dir ./_build/default/src/output --browser-console --url 'https://bhoot.sh' --pref font.name.monospace.x-western='Courier New' --pref font.name.sans-serif.x-western='Courier New' --pref font.name.serif.x-western='Courier New' --reload",
+    "build": "npm run clean && dune build @melange && esbuild ./_build/default/src/output/src/{bg.js,preferences.js} --bundle --out-extension:.js=.build.js --outdir=./_build/default/src/output/src",
     "build:ext": "npm run build && npx web-ext build --source-dir ./_build/default/src/output --ignore-files './src/**/!(*.build).js'",
     "build:src-zip": "zip -r src-pkg.zip.tmp manifest.json package*.json dune* *.opam *.md src/* && rm -rf src-pkg.zip && mv src-pkg.zip.tmp src-pkg.zip"
   },
