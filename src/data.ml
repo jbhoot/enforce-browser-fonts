@@ -1,11 +1,5 @@
 open Js_api
 
-(* type font_type = *)
-(*   [ `Document_fonts [@bs.as "document-fonts"] *)
-(*   | `Browser_fonts [@bs.as "browser-fonts"] *)
-(*   ] *)
-(* [@@bs.deriving jsConverter] *)
-
 module Font_type = struct
   type t =
     | Browser_fonts
