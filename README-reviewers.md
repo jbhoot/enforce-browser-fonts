@@ -17,20 +17,19 @@ opam init --bare
 # 3. Go to project's folder
 cd enforce-browser-fonts
 
-# 4. Set up a switch with OCaml compiler version 4.14.1. A switch is roughly equivalent to a virtualenv in Python.
+# 4. Set up a local opam switch with OCaml compiler version 4.14.1, and also install the project's opam dependencies.
+A switch is roughly equivalent to a virtualenv in Python.
 opam switch create . 4.14.1 -y --deps-only
 
 # 5. Bring the current shell env in sync with opam's env
 eval $(opam env)
 
-# 6. Install dependencies
-opam update
-opam install -y . --deps-only
-npm install
+# 6. Install npm dependencies
+npm ci
 
 # 7a. Load the extension in dev mode
-npm run test
+npm run build && npm run dev:webext
 
 # 7b. Build the extension
-npm run build:ext
+npm run build:webext
 ```
