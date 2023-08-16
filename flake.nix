@@ -2,7 +2,7 @@
   description = "A very basic flake";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs?rev=1daf1298306546c39b3ed0e336a63a02339d4d0a";
   };
 
   outputs = {self, ...} @ inputs: let
@@ -17,6 +17,7 @@
           [
             pkgs.entr
             pkgs.opam
+            pkgs.nodejs
           ]
           # solution to "fatal error: 'CoreServices/CoreServices.h' file not found"
           # https://github.com/commercialhaskell/stack/issues/1698#issuecomment-178098712
