@@ -1,35 +1,36 @@
-This file lists the steps to produce the submitted version of the add-on for the add-on reviewers. The steps have been tested on macOS Catalina.
+# Guide to compile and test run the web extension
 
-Note that the `js` files produced thus may not exactly match with those of the submitted version, because the Google Closure compiler, used under the hood by the ClojureScript compiler, uses random symbol names during every compilation.
+Instructions are tested on macOS.
 
-1. Install clojure.
+The following code snippet pairs the description (as a bash comment) and the command of each step.
 
-```shell script
-brew install clojure/tools/clojure  # for macOS
+```sh
+# 0. Install nodejs and ensure that it is in the PATH.
 
-# Instructions for other OS at: https://clojure.org/guides/getting_started
-```
+# 1. Install opam - OCaml's package manager.
+# src: https://opam.ocaml.org/doc/Install.html
+bash -c "sh <(curl -fsSL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)"
 
-2. Go to the source's root dir, in which `deps.edn` is located
+# 2. Initialise opam
+opam init --bare
 
-3. Compile the `js` files. The `js` files compiled in this step will be placed in the `build` dir.
+# 3. Go to project's folder
+cd enforce-browser-fonts
 
-```shell script
-# to compile build/js/core.js
-clj --main cljs.main --compile-opts cljs-compile-options/prod/core.edn --compile ebf.core
+# 4. Set up a switch with OCaml compiler version 4.14.1. A switch is roughly equivalent to a virtualenv in Python.
+opam switch create . 4.14.1 -y --deps-only
 
-# to compile build/js/preferences.js
-clj --main cljs.main --compile-opts cljs-compile-options/prod/preferences.edn --compile ebf.preferences
-```
+# 5. Bring the current shell env in sync with opam's env
+eval $(opam env)
 
-4. Now the `build` dir contains the compiled source code for the add-on. Run it or build it using the `web-ext` tool provided by Mozilla.
+# 6. Install dependencies
+opam update
+opam install -y . --deps-only
+npm install
 
-```shell script
-cd build
+# 7a. Load the extension in dev mode
+npm run test
 
-# run
-web-ext run
-
-# or build
-web-ext build
+# 7b. Build the extension
+npm run build:ext
 ```

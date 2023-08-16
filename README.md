@@ -48,23 +48,3 @@ are being used. The icon tooltip provides the textual cue for the same.
 
 Icons made by [Bainat](https://www.flaticon.com/authors/baianat) from [www.flaticon.com](https://www.flaticon.com/)
 is licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
-
-## Dev Notes
-
-Commands used during development are listed here for personal use and for general reference:
-
-```sh
-
-# to compile core.js
-
-clj --main cljs.main --compile-opts cljs-compile-options/dev/core.edn --watch src --compile ebf.core
-
-# to compile preferences.js
-
-clj --main cljs.main --compile-opts cljs-compile-options/dev/preferences.edn --watch src --compile ebf.preferences
-
-# to run web-ext in dev mode
-
-web-ext run --browser-console --pref font.name.monospace.x-western="JetBrains Mono" --pref
-font.name.sans-serif.x-western="JetBrains Mono" --pref font.name.serif.x-western="JetBrains Mono"
-```
