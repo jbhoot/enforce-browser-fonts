@@ -192,7 +192,6 @@ let _ =
   s_enforcement_requested
   |. Stream.subscribe (fun tab ->
          let url = domain_name tab.url in
-         Js.Console.log url;
          match Cell.get_value c_preferred_fonts with
          | Browser_fonts -> (
            let excluded_set = Cell.get_value c_excluded_from_browser_fonts in
