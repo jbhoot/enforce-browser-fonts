@@ -16,7 +16,6 @@
         buildInputs =
           [
             pkgs.entr
-            pkgs.nodejs
             pkgs.opam
           ]
           # solution to "fatal error: 'CoreServices/CoreServices.h' file not found"
