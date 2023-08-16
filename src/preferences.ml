@@ -4,7 +4,7 @@ open Rxjs
 
 let defaults = Data.make_default ()
 
-let s_initial_default_font =
+let s_initial_preferred_font =
   defaults
   |. Data.serialise
   |. Storage.Local.get
@@ -27,7 +27,7 @@ let s_browser_font_selected =
   |. InputElement.from_element
   |. Stream.from_event_change ~opts:None
 
-let s_default_font_changed =
+let s_preferred_font_changed =
   Op.merge2 s_browser_font_selected s_document_font_selected
   |. Stream.pipe1
        (Op.map (fun ev _i ->
@@ -36,7 +36,7 @@ let s_default_font_changed =
             |. Data.Font_type.from_string))
 
 let _ =
-  s_initial_default_font
+  s_initial_preferred_font
   |. Stream.subscribe (fun v ->
          let input_id = Data.Font_type.to_string v in
          document
@@ -45,7 +45,7 @@ let _ =
          |. InputElement.set_checked true)
 
 let _ =
-  s_default_font_changed
+  s_preferred_font_changed
   |. Stream.subscribe (fun v ->
          Storage_types.t_partial ~defaultFonts:(Data.Font_type.to_string v) ()
          |. Storage.Local.set
