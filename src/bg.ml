@@ -6,24 +6,18 @@ open Ffext
 (*
 - strip to domain name only
 - tabUpdated: use tab.isLoading flag to filter state?
+- first time config loaded
+- config changed
+- tab activated (switched to another tab)
+- tab updated (another page loaded in a tab)
+- browserAction
 *)
 
-(*
-. (initial_state, state_change) -> (icon, tooltip, about_config)
-. browserAction.clicked -> (state_change) -> (save website to excluded or included)
-*)
+let domain_name s =
+  match s |. URL.make |. URL.get_host with
+  | "" -> s
+  | host -> host
 
-(*
-   . first time config loaded
-   . config changed
-   . tab activated (switched to another tab)
-   . tab updated (another page loaded in a tab)
-   . browserAction
-*)
-
-(*
-   let _ = Browser.Browser_action.On_clicked.
-*)
 let default_data = Data.make_default ()
 
 let s_initial_config =
@@ -122,11 +116,12 @@ let s_browser_action_activated =
     (fun tab _on_click_data -> tab)
 
 let update_excluded_domains curr_set (tab : Browser.tab) =
-  match Set.has curr_set tab.url with
+  let url = domain_name tab.url in
+  match Set.has curr_set url with
   | true ->
-    Set.delete curr_set tab.url |. ignore;
+    Set.delete curr_set url |. ignore;
     curr_set
-  | false -> Set.add curr_set tab.url
+  | false -> Set.add curr_set url
 
 let store_excluded_domains set font_type =
   match font_type with
@@ -216,20 +211,21 @@ let _ =
                 match Array.to_list tabs with
                 | [] -> ()
                 | tab :: _ -> (
-                  Js.Console.log tab.url;
+                  let url = domain_name tab.url in
+                  Js.Console.log url;
                   match Cell.get_value c_preferred_fonts with
                   | Browser_fonts -> (
                     let excluded_set =
                       Cell.get_value c_excluded_from_browser_fonts
                     in
-                    match Set.has excluded_set tab.url with
+                    match Set.has excluded_set url with
                     | true -> enforce Document_fonts
                     | false -> enforce Browser_fonts)
                   | Document_fonts -> (
                     let excluded_set =
                       Cell.get_value c_excluded_from_document_fonts
                     in
-                    match Set.has excluded_set tab.url with
+                    match Set.has excluded_set url with
                     | true -> enforce Browser_fonts
                     | false -> enforce Document_fonts)))
          |. ignore)

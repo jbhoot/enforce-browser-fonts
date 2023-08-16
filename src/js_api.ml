@@ -18,3 +18,10 @@ module Set = struct
     for_each t (fun v _k _s -> Js.Array2.push arr v |. ignore);
     arr
 end
+
+module URL = struct
+  type t
+
+  external make : string -> t = "URL" [@@bs.new]
+  external get_host : t -> string = "host" [@@bs.get]
+end
