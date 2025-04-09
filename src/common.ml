@@ -18,17 +18,17 @@ module Storage_types = struct
   type exclude = { exclude : string array }
 
   type t_whole =
-    { defaultFonts : string [@bs.as "default-fonts"]
-    ; browserFonts : exclude [@bs.as "browser-fonts"]
-    ; documentFonts : exclude [@bs.as "document-fonts"]
+    { defaultFonts : string [@mel.as "default-fonts"]
+    ; browserFonts : exclude [@mel.as "browser-fonts"]
+    ; documentFonts : exclude [@mel.as "document-fonts"]
     }
 
   type t_partial =
-    { defaultFonts : string [@bs.as "default-fonts"] [@bs.optional]
-    ; browserFonts : exclude [@bs.as "browser-fonts"] [@bs.optional]
-    ; documentFonts : exclude [@bs.as "document-fonts"] [@bs.optional]
+    { defaultFonts : string option; [@mel.as "default-fonts"] [@mel.optional]
+    browserFonts : exclude option; [@mel.as "browser-fonts"] [@mel.optional]
+    documentFonts : exclude option; [@mel.as "document-fonts"] [@mel.optional]
     }
-  [@@bs.deriving abstract]
+  [@@deriving jsProperties]
 
   type 'a diff =
     { oldValue : 'a option
@@ -36,9 +36,9 @@ module Storage_types = struct
     }
 
   type t_change =
-    { defaultFonts : string diff option [@bs.as "default-fonts"]
-    ; browserFonts : exclude diff option [@bs.as "browser-fonts"]
-    ; documentFonts : exclude diff option [@bs.as "document-fonts"]
+    { defaultFonts : string diff option [@mel.as "default-fonts"]
+    ; browserFonts : exclude diff option [@mel.as "browser-fonts"]
+    ; documentFonts : exclude diff option [@mel.as "document-fonts"]
     }
 end
 

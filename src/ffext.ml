@@ -12,10 +12,10 @@ module Browser = struct
     type title_details = { title : string }
 
     external set_icon : icon_details -> (unit, unit) Promise.Js.t = "setIcon"
-      [@@bs.val] [@@bs.scope "browser", "browserAction"]
+       [@@mel.scope "browser", "browserAction"]
 
     external set_title : title_details -> (unit, unit) Promise.Js.t = "setTitle"
-      [@@bs.val] [@@bs.scope "browser", "browserAction"]
+       [@@mel.scope "browser", "browserAction"]
 
     module On_clicked = struct
       (* TODO: Turn modifiers into a polymorphic type *)
@@ -26,11 +26,11 @@ module Browser = struct
 
       external add_listener : (tab -> on_click_data -> unit) -> unit
         = "addListener"
-        [@@bs.val] [@@bs.scope "browser", "browserAction", "onClicked"]
+         [@@mel.scope "browser", "browserAction", "onClicked"]
 
       external remove_listener : (tab -> on_click_data -> unit) -> unit
         = "removeListener"
-        [@@bs.val] [@@bs.scope "browser", "browserAction", "onClicked"]
+         [@@mel.scope "browser", "browserAction", "onClicked"]
     end
   end
 
@@ -44,18 +44,18 @@ module Browser = struct
 
     external send_message_internally : 'msg -> ('resp_msg, string) Promise.Js.t
       = "sendMessage"
-      [@@bs.val] [@@bs.scope "browser", "runtime"]
+       [@@mel.scope "browser", "runtime"]
 
     module On_message = struct
       external add_listener :
         ('msg -> message_sender -> ('resp_msg, string) Promise.Js.t) -> unit
         = "addListener"
-        [@@bs.val] [@@bs.scope "browser", "runtime", "onMessage"]
+         [@@mel.scope "browser", "runtime", "onMessage"]
 
       external remove_listener :
         ('msg -> message_sender -> ('resp_msg, string) Promise.Js.t) -> unit
         = "removeListener"
-        [@@bs.val] [@@bs.scope "browser", "runtime", "onMessage"]
+         [@@mel.scope "browser", "runtime", "onMessage"]
     end
   end
 
@@ -64,7 +64,7 @@ module Browser = struct
 
     external update : tab_id -> update_properties -> (tab, string) Promise.Js.t
       = "update"
-      [@@bs.val] [@@bs.scope "browser", "tabs"]
+       [@@mel.scope "browser", "tabs"]
 
     type query_obj =
       { active : bool option
@@ -72,7 +72,7 @@ module Browser = struct
       }
 
     external query : query_obj -> (tab array, string) Promise.Js.t = "query"
-      [@@bs.val] [@@bs.scope "browser", "tabs"]
+       [@@mel.scope "browser", "tabs"]
 
     module On_activated = struct
       type active_info =
@@ -82,11 +82,11 @@ module Browser = struct
         }
 
       external add_listener : (active_info -> unit) -> unit = "addListener"
-        [@@bs.val] [@@bs.scope "browser", "tabs", "onActivated"]
+         [@@mel.scope "browser", "tabs", "onActivated"]
 
       external remove_listener : (active_info -> unit) -> unit
         = "removeListener"
-        [@@bs.val] [@@bs.scope "browser", "tabs", "onActivated"]
+         [@@mel.scope "browser", "tabs", "onActivated"]
     end
 
     module On_updated = struct
@@ -106,15 +106,15 @@ module Browser = struct
 
       external add_listener : (int -> change_info -> tab -> unit) -> unit
         = "addListener"
-        [@@bs.val] [@@bs.scope "browser", "tabs", "onUpdated"]
+         [@@mel.scope "browser", "tabs", "onUpdated"]
 
       external add_listener_with_filter :
         (int -> change_info -> tab -> unit) -> filter -> unit = "addListener"
-        [@@bs.val] [@@bs.scope "browser", "tabs", "onUpdated"]
+         [@@mel.scope "browser", "tabs", "onUpdated"]
 
       external remove_listener : (int -> change_info -> tab -> unit) -> unit
         = "removeListener"
-        [@@bs.val] [@@bs.scope "browser", "tabs", "onUpdated"]
+         [@@mel.scope "browser", "tabs", "onUpdated"]
     end
   end
 
@@ -123,7 +123,7 @@ module Browser = struct
       type t = { value : bool }
 
       external set : t -> (bool, bool) Promise.Js.t = "set"
-        [@@bs.val] [@@bs.scope "browser", "browserSettings", "useDocumentFonts"]
+         [@@mel.scope "browser", "browserSettings", "useDocumentFonts"]
     end
   end
 end
@@ -132,7 +132,7 @@ module type Storage_args_sig = sig
   type keys (* Polymorphic variant of the name of the keys used in t_whole *)
   type t_whole (* a record of keys and values stored in Storage *)
   type t_partial
-  (* same structure as t_whole, but tagged with [@bs.optional] and [@@bs.deriving abstract] to allow for optional keys *)
+  (* same structure as t_whole, but tagged with [@mel.optional] and [@@mel.deriving abstract] to allow for optional keys *)
 
   type 'a diff =
     { oldValue : 'a option
@@ -151,16 +151,16 @@ module Make_storage (Args : Storage_args_sig) = struct
 
   module Local = struct
     external get : Args.t_whole -> (Args.t_whole, string) Promise.Js.t = "get"
-      [@@bs.val] [@@bs.scope "browser", "storage", "local"]
+       [@@mel.scope "browser", "storage", "local"]
 
     external set : Args.t_partial -> (unit, string) Promise.Js.t = "set"
-      [@@bs.val] [@@bs.scope "browser", "storage", "local"]
+       [@@mel.scope "browser", "storage", "local"]
 
     external clear : unit -> (unit, string) Promise.Js.t = "clear"
-      [@@bs.val] [@@bs.scope "browser", "storage", "local"]
+       [@@mel.scope "browser", "storage", "local"]
 
     external remove : Args.keys array -> (unit, string) Promise.Js.t = "remove"
-      [@@bs.val] [@@bs.scope "browser", "storage", "local"]
+       [@@mel.scope "browser", "storage", "local"]
   end
 
   module On_changed = struct
@@ -188,10 +188,10 @@ module Make_storage (Args : Storage_args_sig) = struct
 
     external add_listener : (Args.t_change -> area_name -> unit) -> unit
       = "addListener"
-      [@@bs.val] [@@bs.scope "browser", "storage", "onChanged"]
+       [@@mel.scope "browser", "storage", "onChanged"]
 
     external remove_listener : (Args.t_change -> area_name -> unit) -> unit
       = "removeListener"
-      [@@bs.val] [@@bs.scope "browser", "storage", "onChanged"]
+       [@@mel.scope "browser", "storage", "onChanged"]
   end
 end

@@ -1,4 +1,4 @@
-(lang dune 3.8)
+(lang dune 3.16)
 
 (using melange 0.1)
 
@@ -14,14 +14,14 @@
  (homepage "https://github.com/jyshb/enforce-browser-fonts")
  (bug_reports "https://github.com/jyshb/enforce-browser-fonts/issues")
  (allow_empty)
- ; (depends (melange (>= 1.0.0)) (ocaml-lsp-server :with-dev-setup) (utop :with-dev-setup) (ocamlformat :with-dev-setup)))
  (depends
+  (ocaml
+   (= 5.3.0))
+  ;; 5.1.0-53 => melange v5.1.0 linked to ocaml v5.3.x
   (melange
-   (>= 1.0.0))
-  reason ; reason-promise needs it
-  ocaml-lsp-server
-  utop
-  ocamlformat))
+   (= 5.1.0-53))
+  reason ; reason-promise in package.json needs it
+  utop))
 
 (maintainers "Jayesh Bhoot")
 

@@ -47,6 +47,6 @@ let _ =
 let _ =
   s_preferred_font_changed
   |. Stream.subscribe (fun v ->
-         Storage_types.t_partial ~defaultFonts:(Data.Font_type.to_string v) ()
+         Common.Storage_types.t_partial ~defaultFonts:(Data.Font_type.to_string v) ()
          |. Storage.Local.set
          |. ignore)
